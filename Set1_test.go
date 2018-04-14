@@ -2,6 +2,7 @@ package cryptopals_challenges_go
 
 import "testing"
 import "encoding/hex"
+import "encoding/base64"
 import (
 	"reflect"
 	"fmt"
@@ -17,6 +18,22 @@ func TestHexToBase64(t *testing.T) {
 		got := hexToBase64(c.in)
 		if got != c.want {
 			t.Errorf("HexToBase64(%q) == %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestEncodeBase64(t *testing.T) {
+	cases := []struct {
+		in string
+	}{
+		{"Hello World"},
+	}
+	for _, c := range cases {
+		bytearray := []byte(c.in)
+		got := encodeBase64(bytearray)
+		want := base64.StdEncoding.EncodeToString(bytearray)
+		if got != want {
+			t.Errorf("HexToBase64(%q) == %q, want %q", c.in, got, want)
 		}
 	}
 }

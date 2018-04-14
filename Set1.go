@@ -45,11 +45,11 @@ var base64Chars = map[int]string{
 
 func encodeBase64(bytearray []byte) string {
 	var buffer bytes.Buffer
-	groupsOfThreeBytes := (len(bytearray)/3) * 3
+	groupsOfThreeBytes := (len(bytearray) / 3) * 3
 	for i := 0; i < groupsOfThreeBytes; i = i + 3 {
 		b1, b2, b3 := bytearray[i], bytearray[i+1], bytearray[i+2]
 		chunk := uint32(uint32(b1)<<16 | uint32(b2)<<8 | uint32(b3))
-		firstChar, secondChar, thirdChar, fourthChar := chunk >> 18, (chunk >> 12) & 0x3f, (chunk >> 6) & 0x3f, chunk & 0x3f
+		firstChar, secondChar, thirdChar, fourthChar := chunk>>18, (chunk>>12)&0x3f, (chunk>>6)&0x3f, chunk&0x3f
 		buffer.WriteString(base64Chars[int(firstChar)])
 		buffer.WriteString(base64Chars[int(secondChar)])
 		buffer.WriteString(base64Chars[int(thirdChar)])
@@ -64,17 +64,17 @@ func encodeBase64(bytearray []byte) string {
 
 	finalChunk := uint32(bytearray[groupsOfThreeBytes]) << 16
 
- 	if remainingBytes == 2 {
-		finalChunk |= uint32(bytearray[groupsOfThreeBytes + 1]) << 8
+	if remainingBytes == 2 {
+		finalChunk |= uint32(bytearray[groupsOfThreeBytes+1]) << 8
 	}
-	buffer.WriteString(base64Chars[int(finalChunk >> 18)])
-	buffer.WriteString(base64Chars[int((finalChunk >> 12) & 0x3f)])
+	buffer.WriteString(base64Chars[int(finalChunk>>18)])
+	buffer.WriteString(base64Chars[int((finalChunk>>12)&0x3f)])
 
 	if remainingBytes == 1 {
 		buffer.WriteString("==")
 		return buffer.String()
 	} else if remainingBytes == 2 {
-		buffer.WriteString(base64Chars[int(finalChunk >> 6 & 0x3f)])
+		buffer.WriteString(base64Chars[int(finalChunk>>6&0x3f)])
 		buffer.WriteString("=")
 		return buffer.String()
 	}
@@ -96,4 +96,35 @@ func fixedXor(left []byte, right []byte) []byte {
 		dst[i] = left[i] ^ right[i]
 	}
 	return dst
+}
+
+var englishLetterFrequency = map[string]int{
+	"E": 13, "T": 12, "A": 11, "O": 10, "I": 9, "N": 8, " ": 7,  "S": 6, "H": 5, "R": 4, "D": 3, "L": 2, "U": 1,
+}
+
+func plaintextScore(input string) int {
+	var stringChars = strings.Split(input, "")
+	score := 0
+	for i := 0; i < len(stringChars); i = i + 1 {
+		score += englishLetterFrequency[strings.ToUpper(stringChars[i])]
+	}
+	return score
+}
+
+func findSingleByteXor(xorInput []byte) []byte {
+	maxScore := 0
+	var bestValue []byte
+	for i := 0; i < 256; i = i+1 {
+		potentialKey := make([]byte, len(xorInput))
+		for j := 0; j < len(potentialKey); j++ {
+			potentialKey[j] = byte(i)
+		}
+		potentialPlaintext := fixedXor(xorInput, potentialKey)
+		score := plaintextScore(string(potentialPlaintext))
+		if score > maxScore {
+			bestValue = potentialPlaintext
+			maxScore = score
+		}
+	}
+	return bestValue
 }

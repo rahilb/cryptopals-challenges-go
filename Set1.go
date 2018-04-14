@@ -84,3 +84,16 @@ func encodeBase64(bytearray []byte) string {
 func hexToBase64(hexString string) string {
 	return encodeBase64(decodeHex(hexString))
 }
+
+func fixedXor(left []byte, right []byte) []byte {
+	if len(left) != len(right) {
+		panic("Uneven input arrays")
+	} else if len(left) == 0 {
+		return make([]byte, 0)
+	}
+	dst := make([]byte, len(left))
+	for i := 0; i < len(left); i++ {
+		dst[i] = left[i] ^ right[i]
+	}
+	return dst
+}

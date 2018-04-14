@@ -1,11 +1,14 @@
 package cryptopals_challenges_go
 
-import "testing"
-import "encoding/hex"
-import "encoding/base64"
 import (
 	"reflect"
 	"fmt"
+	"testing"
+	"encoding/base64"
+	"encoding/hex"
+	"bufio"
+	"os"
+	"log"
 )
 
 func TestHexToBase64(t *testing.T) {
@@ -75,4 +78,29 @@ func TestFixedXor(t *testing.T) {
 func TestFindSingleByteXor(t *testing.T) {
 	plaintext := findSingleByteXor(decodeHex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"))
 	fmt.Println(string(plaintext))
+}
+
+func TestChallenge4(t *testing.T) {
+	file, err := os.Open("set1_challenge4.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	maxScore := 0
+	bestPlaintext := ""
+
+	for scanner.Scan() {
+		plaintext := findSingleByteXor(decodeHex(scanner.Text()))
+		score := plaintextScore(string(plaintext))
+		if score > maxScore {
+			maxScore = score
+			bestPlaintext = string(plaintext)
+		}
+	}
+
+	fmt.Printf("Best Score: %v, Best Plaintext: %v", maxScore, bestPlaintext)
+
 }

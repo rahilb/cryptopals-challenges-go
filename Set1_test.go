@@ -104,3 +104,16 @@ func TestChallenge4(t *testing.T) {
 	fmt.Printf("Best Score: %v, Best Plaintext: %v", maxScore, bestPlaintext)
 
 }
+
+func TestRepeatingKeyXOR(t *testing.T) {
+	input := `Burning 'em, if you ain't quick and nimble
+I go crazy when I hear a cymbal.`
+	expected := `0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f`
+	got := encodeHex(repeatedKeyXor([]byte(input), []byte("ICE")))
+	if !reflect.DeepEqual(got, expected) {
+		fmt.Println(string(repeatedKeyXor(decodeHex("0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"), []byte("ICE"))))
+		t.Errorf("repeatingKeyXor(%q, %q) == %q, want %q", input, "ICE", got, expected)
+	} else {
+		fmt.Println(string(got))
+	}
+}

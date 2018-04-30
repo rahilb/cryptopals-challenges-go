@@ -5,7 +5,7 @@ import (
 	"bytes"
 )
 
-var hexChars = [16]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"}
+var hexChars = [16]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
 
 func decodeHex(hexString string) []byte {
 	if (len(hexString) % 2) > 0 {
@@ -18,10 +18,19 @@ func decodeHex(hexString string) []byte {
 	var bytearray = make([]byte, len(hexString)/2)
 	var stringChars = strings.Split(hexString, "")
 	for i, j := 0, 0; i < len(stringChars)-1; i, j = i+2, j+1 {
-		firstHex, secondHex := hexMap[strings.ToUpper(stringChars[i])], hexMap[strings.ToUpper(stringChars[i+1])]
+		firstHex, secondHex := hexMap[strings.ToLower(stringChars[i])], hexMap[strings.ToLower(stringChars[i+1])]
 		bytearray[j] = uint8(firstHex<<4 | secondHex)
 	}
 	return bytearray
+}
+
+func encodeHex(bytearray []byte) string {
+	var dst bytes.Buffer
+	for i := 0; i < len(bytearray) - 1; i++ {
+		dst.WriteString(hexChars[bytearray[i] >> 4])
+		dst.WriteString(hexChars[bytearray[i] & 0xF])
+	}
+	return dst.String()
 }
 
 var base64Chars = map[int]string{
@@ -127,4 +136,18 @@ func findSingleByteXor(xorInput []byte) []byte {
 		}
 	}
 	return bestValue
+}
+
+func repeatedKeyXor(input []byte, key []byte) []byte {
+	var dst bytes.Buffer
+	keySize := len(key)
+	groupsOfKeySize := (len(input) / keySize) * keySize
+	for i, j := 0, 1; i < groupsOfKeySize; i, j = i+keySize, j+1 {
+		dst.Write(fixedXor(input[i:keySize * j], key))
+	}
+	leftOverBytes := len(input) % keySize
+	if leftOverBytes > 0 {
+		dst.Write(fixedXor(input[groupsOfKeySize:groupsOfKeySize + leftOverBytes], key[0:leftOverBytes]))
+	}
+	return dst.Bytes()
 }

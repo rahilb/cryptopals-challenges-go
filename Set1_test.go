@@ -117,3 +117,10 @@ I go crazy when I hear a cymbal.`
 		fmt.Println(string(got))
 	}
 }
+
+func TestHammingDistance(t *testing.T) {
+	result := hammingDistance([]byte("this is a test"), []byte("wokka wokka!!!"))
+	if (result != 37) {
+		t.Errorf("hammingDistance failed, wanted 37, got %d", result)
+	}
+}

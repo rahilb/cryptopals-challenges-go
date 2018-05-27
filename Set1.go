@@ -120,9 +120,10 @@ func plaintextScore(input string) int {
 	return score
 }
 
-func findSingleByteXor(xorInput []byte) []byte {
+func findSingleByteXor(xorInput []byte) ([]byte, byte) {
 	maxScore := 0
 	var bestValue []byte
+	var bestKey byte
 	for i := 0; i < 256; i = i+1 {
 		potentialKey := make([]byte, len(xorInput))
 		for j := 0; j < len(potentialKey); j++ {
@@ -132,10 +133,11 @@ func findSingleByteXor(xorInput []byte) []byte {
 		score := plaintextScore(string(potentialPlaintext))
 		if score > maxScore {
 			bestValue = potentialPlaintext
+			bestKey = byte(i)
 			maxScore = score
 		}
 	}
-	return bestValue
+	return bestValue, bestKey
 }
 
 func repeatedKeyXor(input []byte, key []byte) []byte {

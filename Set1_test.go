@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"os"
 	"log"
+	"io/ioutil"
 )
 
 func TestHexToBase64(t *testing.T) {
@@ -76,7 +77,7 @@ func TestFixedXor(t *testing.T) {
 }
 
 func TestFindSingleByteXor(t *testing.T) {
-	plaintext := findSingleByteXor(decodeHex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"))
+	plaintext, _ := findSingleByteXor(decodeHex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"))
 	fmt.Println(string(plaintext))
 }
 
@@ -93,7 +94,7 @@ func TestChallenge4(t *testing.T) {
 	bestPlaintext := ""
 
 	for scanner.Scan() {
-		plaintext := findSingleByteXor(decodeHex(scanner.Text()))
+		plaintext, _ := findSingleByteXor(decodeHex(scanner.Text()))
 		score := plaintextScore(string(plaintext))
 		if score > maxScore {
 			maxScore = score
@@ -123,4 +124,41 @@ func TestHammingDistance(t *testing.T) {
 	if (result != 37) {
 		t.Errorf("hammingDistance failed, wanted 37, got %d", result)
 	}
+}
+
+func TestChallenge6(t *testing.T) {
+	file, err := os.Open("set1_challenge6.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	maxKeySize := 40
+	rawBytes := base64.NewDecoder(base64.StdEncoding, file)
+	enoughBytesForSearch := make([]byte, maxKeySize * 4)
+	rawBytes.Read(enoughBytesForSearch)
+	sizes := calculateKeySizes(enoughBytesForSearch, maxKeySize)
+	for i, j := 0, 1; i < len(sizes); i, j = i + 1, j + 1 {
+		fmt.Printf("KeySize: %d, Distance: %v", j, sizes[i])
+		fmt.Println()
+	}
+}
+
+func TestTransposeBlocks(t *testing.T) {
+	file, err := os.Open("set1_challenge6.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	maybeKeySize := 29
+	reader := base64.NewDecoder(base64.StdEncoding, file)
+	rawBytes, err := ioutil.ReadAll(reader)
+	fmt.Printf("Read %d bytes\\n", len(rawBytes))
+	transposedBlocks := transposeBlocks(rawBytes, maybeKeySize)
+	maybeKey := make([]byte, maybeKeySize)
+	for i := 0; i < len(transposedBlocks); i += 1 {
+		_, keyByte := findSingleByteXor(transposedBlocks[i])
+		maybeKey[i] = keyByte
+	}
+	println(string(repeatedKeyXor(rawBytes, maybeKey)))
+
 }
